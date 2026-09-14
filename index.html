@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <meta name="theme-color" content="#111111">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Planificador">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="./icons/icon-192.png">
+  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+
+  <title>Planificador Semanal por Meses</title>
+
+  <style>
+    :root {
+      --app-bg: #000000;
+      --app-text: #ffffff;
+      --header-bg: #111111;
+      --header-border: #333333;
+      --day-bg: #111111;
+      --day-border: #333333;
+      --today-bg: #0a1120;
+      --today-border: #2563eb;
+      --day-header-line: #282828;
+      --day-name: #94a3b8;
+      --today-name: #60a5fa;
+      --task-text: #ffffff;
+      --line-color: #282828;
+      --line-width: 1px;
+      --completed-color: #ff1493;
+      --button-bg: #2563eb;
+      --button-secondary: #475569;
+      --font-family: "Comic Sans MS", "Comic Sans", "Comic Neue", cursive, sans-serif;
+      --base-font-size: 0.8rem;
+      --task-row-height: 28px;
+      --task-gap: 0px;
+      --card-radius: 6px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-family) !important;
+    }
+
+    html, body {
+      width: 100vw;
+      height: 100dvh;
+      background-color: var(--app-bg);
+      color: var(--app-text);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    header {
+      flex-shrink: 0;
+      height: 48px;
+      background: var(--header-bg);
+      border-bottom: var(--line-width) solid var(--header-border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0 8px;
+      z-index: 20;
+    }
+
+    .title-area { display: flex; align-items: center; gap: 6px; }
+    .week-title { font-size: clamp(0.8rem, 2.2vw, 1.05rem); font-weight: 700; color: var(--task-text); }
+    .actions { display: flex; gap: 4px; align-items: center; }
+
+    button {
+      background: var(--button-bg);
+      color: var(--task-text);
+      border: none;
+      padding: 5px 8px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 3px;
+    }
+
+    button:active { transform: scale(0.96); }
+    button.btn-secondary { background: var(--button-secondary); color: var(--task-text); }
+    button.btn-outline { background: transparent; color: var(--task-text); border: 1px solid #444444; }
+
+    .sync-badge {
+      font-size: 0.7rem;
+      padding: 2px 6px;
+      border-radius: 10px;
+      background: #222222;
+      color: #aaaaaa;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .sync-badge.online { background: #14532d; color: #86efac; }
+    .sync-badge.syncing { background: #422006; color: #fbbf24; }
+    .sync-badge.error { background: #450a0a; color: #fca5a5; }
+
+    main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 4px;
+      height: calc(100dvh - 48px);
+      box-sizing: border-box;
+      overflow-y: auto;
+      touch-action: pan-x pan-y;
+    }
+
+    .planner-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      width: 100%;
+    }
+
+    .day-card.is-domingo { grid-column: 1 / -1; }
+
+    .day-card {
+      background: var(--day-bg);
+      border: var(--line-width) solid var(--day-border);
+      border-radius: var(--card-radius);
+      display: flex;
+      flex-direction: column;
+      padding: 4px 6px;
+      min-height: 0;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.5);
+    }
+
+    .day-card.out-month {
+      background: color-mix(in srgb, var(--day-bg) 90%, #ffffff 10%);
+      opacity: 0.35;
+      border-style: dashed;
+      pointer-events: none;
+    }
+
+    .day-card.is-today {
+      border: calc(var(--line-width) + 1px) solid var(--today-border);
+      background: var(--today-bg);
+    }
+
+    .day-header {
+      flex-shrink: 0;
+      border-bottom: var(--line-width) solid var(--day-header-line);
+      padding-bottom: 2px;
+      margin-bottom: 3px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .day-name {
+      font-size: clamp(0.7rem, 1.1vw, 0.82rem);
+      font-weight: 700;
+      text-transform: uppercase;
+      color: var(--day-name);
+    }
+
+    .day-card.is-today .day-name { color: var(--today-name); }
+    .day-date { font-size: clamp(0.75rem, 1.2vw, 0.88rem); font-weight: 700; color: var(--task-text); }
+
+    .task-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      overflow-y: auto;
+    }
+
+    .is-weekday .task-list { height: 196px; }
+    .is-weekend .task-list { height: 84px; }
+
+    .task-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      border-bottom: var(--line-width) var(--line-style, dashed) var(--line-color);
+      padding: 1px 0;
+      height: var(--task-row-height);
+      min-height: var(--task-row-height);
+      box-sizing: border-box;
+    }
+
+    .task-checkbox {
+      width: 14px;
+      height: 14px;
+      accent-color: var(--completed-color);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .task-input {
+      flex: 1;
+      border: none;
+      outline: none;
+      background: transparent;
+      font-size: var(--base-font-size);
+      color: var(--task-text);
+      font-family: inherit;
+      width: 100%;
+    }
+
+    .task-input.completed {
+      color: var(--completed-color);
+      font-weight: 600;
+      text-decoration: none;
+    }
+
+    .task-status-emoji {
+      font-size: 0.75rem;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+
+    .btn-del {
+      background: transparent;
+      color: #555555;
+      border: none;
+      font-size: 0.85rem;
+      padding: 0 2px;
+      cursor: pointer;
+    }
+
+    .btn-del:hover { color: #ef4444; }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: var(--app-bg); }
+    ::-webkit-scrollbar-thumb { background: #333333; border-radius: 2px; }
+
+    .fade-in { animation: fadeIn 0.12s ease-in-out; }
+    @keyframes fadeIn { from { opacity: 0.6; } to { opacity: 1; } }
+
+    /* ===== Panel de personalización ===== */
+    .settings-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.62);
+      z-index: 100;
+      display: none;
+      align-items: flex-start;
+      justify-content: flex-end;
+    }
+    .settings-overlay.open { display: flex; }
+
+    .settings-panel {
+      width: min(390px, 94vw);
+      height: 100dvh;
+      overflow-y: auto;
+      background: #151515;
+      color: #fff;
+      padding: 14px;
+      box-shadow: -5px 0 18px rgba(0,0,0,.45);
+    }
+    .settings-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 12px;
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+    .settings-section {
+      border: 1px solid #3a3a3a;
+      border-radius: 8px;
+      margin-bottom: 9px;
+      overflow: hidden;
+    }
+    .settings-section summary {
+      cursor: pointer;
+      padding: 9px 10px;
+      background: #202020;
+      font-weight: 700;
+      user-select: none;
+    }
+    .settings-body { padding: 9px 10px 10px; }
+    .setting-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 9px;
+      font-size: .78rem;
+    }
+    .setting-row:last-child { margin-bottom: 0; }
+    .setting-row input[type="color"] {
+      width: 48px;
+      height: 30px;
+      padding: 2px;
+      border: 1px solid #555;
+      border-radius: 5px;
+      background: #111;
+    }
+    .setting-row input[type="range"] { width: 145px; }
+    .setting-row select {
+      min-width: 145px;
+      background: #111;
+      color: #fff;
+      border: 1px solid #555;
+      border-radius: 5px;
+      padding: 5px;
+    }
+    .range-value {
+      display: inline-block;
+      min-width: 42px;
+      text-align: right;
+      color: #aaa;
+    }
+    .settings-actions {
+      display: flex;
+      gap: 7px;
+      margin-top: 12px;
+      position: sticky;
+      bottom: 0;
+      background: #151515;
+      padding-top: 9px;
+    }
+    .settings-actions button { flex: 1; justify-content: center; }
+    .settings-hint {
+      color: #999;
+      font-size: .7rem;
+      line-height: 1.35;
+      margin-top: 8px;
+    }
+
+  </style>
+
+  <!-- Motor de personalización (no depende de Firebase) -->
+  <script>
+    (function () {
+      const DEFAULT_SETTINGS = {
+        appBg: "#000000",
+        appText: "#ffffff",
+        headerBg: "#111111",
+        headerBorder: "#333333",
+        dayBg: "#111111",
+        dayBorder: "#333333",
+        todayBg: "#0a1120",
+        todayBorder: "#2563eb",
+        dayHeaderLine: "#282828",
+        dayName: "#94a3b8",
+        todayName: "#60a5fa",
+        lineColor: "#282828",
+        completedColor: "#ff1493",
+        taskText: "#ffffff",
+        buttonBg: "#2563eb",
+        buttonSecondary: "#475569",
+        fontFamily: '"Comic Sans MS", "Comic Sans", "Comic Neue", cursive',
+        baseFontSize: 0.8,
+        taskRowHeight: 28,
+        cardRadius: 6,
+        lineStyle: "dashed",
+        completedStrike: false,
+        completedBold: true
+      };
+
+      function readLocalSettings() {
+        try {
+          const raw = localStorage.getItem("planner_settings");
+          return raw ? JSON.parse(raw) : {};
+        } catch (e) {
+          console.warn("No se pudieron leer las preferencias locales:", e);
+          return {};
+        }
+      }
+
+      let current = { ...DEFAULT_SETTINGS, ...readLocalSettings() };
+      window.PLANNER_DEFAULT_SETTINGS = Object.freeze({ ...DEFAULT_SETTINGS });
+      window.getPlannerSettings = () => ({ ...current });
+
+      window.applyPlannerSettings = function (next) {
+        current = { ...DEFAULT_SETTINGS, ...(next || {}) };
+        const root = document.documentElement;
+        const vars = {
+          appBg: "--app-bg", appText: "--app-text", headerBg: "--header-bg",
+          headerBorder: "--header-border", dayBg: "--day-bg", dayBorder: "--day-border",
+          todayBg: "--today-bg", todayBorder: "--today-border", dayHeaderLine: "--day-header-line",
+          dayName: "--day-name", todayName: "--today-name", lineColor: "--line-color",
+          completedColor: "--completed-color", taskText: "--task-text", buttonBg: "--button-bg",
+          buttonSecondary: "--button-secondary", fontFamily: "--font-family",
+          baseFontSize: "--base-font-size", taskRowHeight: "--task-row-height",
+          cardRadius: "--card-radius"
+        };
+        Object.entries(vars).forEach(([key, cssVar]) => {
+          let value = current[key];
+          if (["lineWidth", "cardRadius"].includes(key)) value = `${value}px`;
+          if (key === "baseFontSize") value = `${value}rem`;
+          if (key === "taskRowHeight") value = `${value}px`;
+          root.style.setProperty(cssVar, value);
+        });
+        root.style.setProperty("--line-width", `${current.lineWidth}px`);
+        root.style.setProperty("--line-style", current.lineStyle);
+
+        document.querySelectorAll(".task-row").forEach(row => {
+          row.style.borderBottomStyle = current.lineStyle;
+        });
+        document.querySelectorAll(".task-input.completed").forEach(input => {
+          input.style.textDecoration = current.completedStrike ? "line-through" : "none";
+          input.style.fontWeight = current.completedBold ? "600" : "400";
+        });
+
+        const ids = {
+          baseFontSizeValue: `${current.baseFontSize}rem`,
+          lineWidthValue: `${current.lineWidth}px`,
+          taskRowHeightValue: `${current.taskRowHeight}px`,
+          cardRadiusValue: `${current.cardRadius}px`
+        };
+        Object.entries(ids).forEach(([id, value]) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = value;
+        });
+        document.querySelectorAll("[data-setting]").forEach(el => {
+          const key = el.dataset.setting;
+          if (!(key in current)) return;
+          el.value = el.type === "checkbox" ? "" : current[key];
+          if (el.type === "checkbox") el.checked = !!current[key];
+        });
+
+        try {
+          localStorage.setItem("planner_settings", JSON.stringify(current));
+        } catch (e) {
+          console.warn("No se pudieron guardar las preferencias locales:", e);
+        }
+        window.dispatchEvent(new CustomEvent("planner-settings-applied", { detail: { ...current } }));
+      };
+
+      window.resetPlannerSettingsLocal = function () {
+        window.applyPlannerSettings(DEFAULT_SETTINGS);
+      };
+
+      window.queuePlannerSettingsCloudSave = function () {};
+      window.applyPlannerSettings(current);
+    })();
+  </script>
+
+
+  <!-- Firebase: sincronización opcional de datos y configuración -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDTuO925sL4dIDUHSaVWZApJay3Cb8vt6k",
+      authDomain: "planificador-632f0.firebaseapp.com",
+      databaseURL: "https://planificador-632f0-default-rtdb.firebaseio.com",
+      projectId: "planificador-632f0",
+      storageBucket: "planificador-632f0.firebasestorage.app",
+      messagingSenderId: "650791018066",
+      appId: "1:650791018066:web:e7cb9c9bd4ab45b4a8498b"
+    };
+
+    let firebaseReady = false;
+    let settingsSavePending = false;
+    let settingsSaveTimer = null;
+
+    try {
+      const app = initializeApp(firebaseConfig);
+      const database = getDatabase(app);
+      const dbRef = ref(database, "weekly_planner_db");
+      const settingsRef = ref(database, "planner_settings");
+      const connectedRef = ref(database, ".info/connected");
+      firebaseReady = true;
+
+      window.savePlannerSettings = function () {
+        if (!firebaseReady) return;
+        const snapshot = window.getPlannerSettings();
+        settingsSavePending = true;
+        if (settingsSaveTimer) clearTimeout(settingsSaveTimer);
+        settingsSaveTimer = setTimeout(() => {
+          set(settingsRef, snapshot)
+            .then(() => { settingsSavePending = false; })
+            .catch(err => {
+              settingsSavePending = false;
+              console.error("Firebase: error al guardar configuración:", err);
+            });
+        }, 150);
+      };
+
+      onValue(settingsRef, snapshot => {
+        const remote = snapshot.val();
+        if (remote && !settingsSavePending) {
+          window.applyPlannerSettings(remote);
+        } else if (!remote && !settingsSavePending) {
+          set(settingsRef, window.getPlannerSettings()).catch(err =>
+            console.error("Firebase: error al crear configuración:", err)
+          );
+        }
+      }, err => console.error("Firebase: error de lectura de configuración:", err));
+
+      onValue(connectedRef, snapshot => {
+        if (snapshot.val() === true) {
+          window.setPlannerSyncStatus?.("🟢 En línea", "online");
+        } else {
+          window.setPlannerSyncStatus?.("🔴 Sin conexión", "error");
+        }
+      });
+
+      window.__plannerFirebase = { database, dbRef, settingsRef, ref, set };
+
+      const pendingKeys = new Set();
+      const saveTimers = new Map();
+      let firstCloudRead = true;
+
+      window.saveDayToCloud = function (key) {
+        if (!window.db || window.db[key] === undefined) return;
+        pendingKeys.add(key);
+        localStorage.setItem("weekly_planner_v5_db", JSON.stringify(window.db));
+        window.setPlannerSyncStatus?.("🟡 Guardando...", "syncing");
+        if (saveTimers.has(key)) clearTimeout(saveTimers.get(key));
+        const timer = setTimeout(() => {
+          set(ref(database, "weekly_planner_db/" + key), window.db[key])
+            .then(() => {
+              pendingKeys.delete(key);
+              saveTimers.delete(key);
+              if (!pendingKeys.size) window.setPlannerSyncStatus?.("🟢 En línea", "online");
+            })
+            .catch(err => {
+              console.error("Firebase: error al guardar día:", err);
+              window.setPlannerSyncStatus?.("🔴 Error al guardar", "error");
+            });
+        }, 250);
+        saveTimers.set(key, timer);
+      };
+
+      window.saveDB = function () {
+        localStorage.setItem("weekly_planner_v5_db", JSON.stringify(window.db));
+      };
+
+      onValue(dbRef, snapshot => {
+        const data = snapshot.val();
+        if (firstCloudRead) {
+          firstCloudRead = false;
+          if (data === null) {
+            if (window.db && Object.keys(window.db).length) {
+              set(dbRef, window.db).catch(err => console.error("Firebase: error base inicial:", err));
+            }
+            return;
+          }
+        }
+        if (data === null) return;
+        const merged = { ...data };
+        pendingKeys.forEach(key => {
+          if (window.db && window.db[key] !== undefined) merged[key] = window.db[key];
+        });
+        if (JSON.stringify(window.db || {}) !== JSON.stringify(merged)) {
+          window.db = merged;
+          localStorage.setItem("weekly_planner_v5_db", JSON.stringify(window.db));
+          if (window.activeInput) window.pendingRender = true;
+          else window.renderPlanner?.();
+        }
+      }, err => {
+        console.error("Firebase: error de lectura:", err);
+        window.setPlannerSyncStatus?.("🔴 Error Firebase", "error");
+      });
+    } catch (err) {
+      console.error("Firebase no disponible. El planificador seguirá funcionando localmente:", err);
+    }
+  </script>
+
+<script>
+  // Instalación PWA: el Service Worker solo se registra cuando se sirve por HTTPS
+  // (por ejemplo, mediante GitHub Pages).
+  if ("serviceWorker" in navigator && location.protocol === "https:") {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./service-worker.js")
+        .then(() => console.log("PWA: Service Worker registrado"))
+        .catch(err => console.warn("PWA: no se pudo registrar el Service Worker:", err));
+    });
+  }
+</script>
+
+</head>
+
+<body>
+
+  <header>
+    <div class="title-area">
+      <button class="btn-outline" onclick="changeWeek(-1)">◀</button>
+      <span class="week-title" id="weekTitle">Semana</span>
+      <button class="btn-outline" onclick="changeWeek(1)">▶</button>
+    </div>
+
+    <div class="actions">
+      <button class="btn-outline" onclick="openSettings()" title="Personalizar">⚙️</button>
+      <span id="syncStatus" class="sync-badge">🟡 Conectando...</span>
+      <button class="btn-secondary" onclick="goToday()">Hoy</button>
+      <button onclick="exportData()">💾 Backup</button>
+      <button class="btn-outline" onclick="importData()">📂 Cargar</button>
+    </div>
+  </header>
+
+
+  <!-- Panel de personalización -->
+  <div id="settingsOverlay" class="settings-overlay" onclick="closeSettingsIfOutside(event)">
+    <aside class="settings-panel" onclick="event.stopPropagation()">
+      <div class="settings-title">
+        <span>⚙️ Personalizar</span>
+        <button class="btn-outline" onclick="closeSettings()">✕</button>
+      </div>
+
+      <details class="settings-section" open>
+        <summary>🎨 Colores</summary>
+        <div class="settings-body">
+          <label class="setting-row">Fondo general <input type="color" data-setting="appBg"></label>
+          <label class="setting-row">Texto general <input type="color" data-setting="appText"></label>
+          <label class="setting-row">Fondo de los días <input type="color" data-setting="dayBg"></label>
+          <label class="setting-row">Borde de los días <input type="color" data-setting="dayBorder"></label>
+          <label class="setting-row">Fondo del encabezado <input type="color" data-setting="headerBg"></label>
+          <label class="setting-row">Línea de encabezado <input type="color" data-setting="dayHeaderLine"></label>
+          <label class="setting-row">Color de renglones <input type="color" data-setting="lineColor"></label>
+          <label class="setting-row">Texto de tareas <input type="color" data-setting="taskText"></label>
+          <label class="setting-row">Tareas completadas <input type="color" data-setting="completedColor"></label>
+          <label class="setting-row">Borde de "hoy" <input type="color" data-setting="todayBorder"></label>
+          <label class="setting-row">Fondo de "hoy" <input type="color" data-setting="todayBg"></label>
+        </div>
+      </details>
+
+      <details class="settings-section" open>
+        <summary>🔤 Fuentes</summary>
+        <div class="settings-body">
+          <label class="setting-row">
+            Tipo de fuente
+            <select data-setting="fontFamily">
+              <option value='"Comic Sans MS", "Comic Sans", "Comic Neue",'cursive',>Comic Sans</option>
+              <option value="Arial, Helvetica, sans-serif">Arial</option>
+              <option value="Verdana, Geneva, sans-serif">Verdana</option>
+              <option value="Tahoma, Geneva, sans-serif">Tahoma</option>
+              <option value='"Trebuchet MS", Arial, sans-serif'>Trebuchet MS</option>
+              <option value='"Times New Roman", Times, serif'>Times New Roman</option>
+              <option value="Georgia, serif">Georgia</option>
+              <option value="monospace">Monospace</option>
+            </select>
+          </label>
+          <label class="setting-row">
+            Tamaño del texto
+            <span>
+              <input type="range" min="0.65" max="1.30" step="0.05" data-setting="baseFontSize">
+              <span class="range-value" id="baseFontSizeValue"></span>
+            </span>
+          </label>
+        </div>
+      </details>
+
+      <details class="settings-section" open>
+        <summary>📏 Renglones y bordes</summary>
+        <div class="settings-body">
+          <label class="setting-row">
+            Espesor de renglón
+            <span>
+              <input type="range" min="1" max="4" step="1" data-setting="lineWidth">
+              <span class="range-value" id="lineWidthValue"></span>
+            </span>
+          </label>
+          <label class="setting-row">
+            Alto de renglón
+            <span>
+              <input type="range" min="22" max="42" step="1" data-setting="taskRowHeight">
+              <span class="range-value" id="taskRowHeightValue"></span>
+            </span>
+          </label>
+          <label class="setting-row">
+            Redondeo de cuadros
+            <span>
+              <input type="range" min="0" max="16" step="1" data-setting="cardRadius">
+              <span class="range-value" id="cardRadiusValue"></span>
+            </span>
+          </label>
+          <label class="setting-row">
+            Estilo de renglón
+            <select data-setting="lineStyle">
+              <option value="dashed">Discontinuo</option>
+              <option value="solid">Continuo</option>
+              <option value="dotted">Punteado</option>
+            </select>
+          </label>
+        </div>
+      </details>
+
+      <details class="settings-section">
+        <summary>☑️ Tareas completadas</summary>
+        <div class="settings-body">
+          <label class="setting-row">
+            <span>Tachar texto al completar</span>
+            <input type="checkbox" data-setting="completedStrike">
+          </label>
+          <label class="setting-row">
+            <span>Texto en negrita al completar</span>
+            <input type="checkbox" data-setting="completedBold">
+          </label>
+        </div>
+      </details>
+
+      <div class="settings-actions">
+        <button onclick="resetSettings()">↩️ Restablecer</button>
+        <button class="btn-secondary" onclick="closeSettings()">✓ Cerrar</button>
+      </div>
+      <div class="settings-hint">
+        Los cambios se aplican inmediatamente. Se guardan localmente y también se sincronizan con Firebase para compartir el mismo diseño entre dispositivos.
+      </div>
+    </aside>
+  </div>
+
+  <main id="mainContainer">
+    <div class="planner-grid" id="plannerGrid"></div>
+  </main>
+
+  <input
+    type="file"
+    id="fileInput"
+    style="display:none"
+    accept=".json"
+    onchange="loadJSONFile(event)"
+  >
+
+  <script>
+    let currentYear = new Date().getFullYear();
+    let currentMonth = new Date().getMonth();
+    let currentWeekIndex = 0;
+
+    window.db = JSON.parse(
+      localStorage.getItem("weekly_planner_v5_db") || "{}"
+    );
+
+    window.activeInput = false;
+    window.pendingRender = false;
+
+    window.handleFocus = function() {
+      window.activeInput = true;
+    };
+
+    window.handleBlur = function() {
+      window.activeInput = false;
+
+      setTimeout(() => {
+        if (!window.activeInput && window.pendingRender) {
+          window.pendingRender = false;
+          window.renderPlanner();
+        }
+      }, 100);
+    };
+
+    function formatDateKey(year, month, day) {
+      const mm = String(month + 1).padStart(2, "0");
+      const dd = String(day).padStart(2, "0");
+      return `${year}-${mm}-${dd}`;
+    }
+
+    function getMonthWeeks(year, month) {
+      const weeks = [];
+
+      let firstDayDate = new Date(year, month, 1);
+      let dayOfWeek = firstDayDate.getDay();
+      let offsetToMonday =
+        dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+
+      let currentPointer =
+        new Date(year, month, 1 - offsetToMonday);
+
+      while (true) {
+        let weekDays = [];
+        let hasDaysInMonth = false;
+
+        for (let i = 0; i < 7; i++) {
+          const pYear = currentPointer.getFullYear();
+          const pMonth = currentPointer.getMonth();
+          const pDate = currentPointer.getDate();
+
+          const inMonth =
+            pMonth === month && pYear === year;
+
+          if (inMonth) hasDaysInMonth = true;
+
+          weekDays.push({
+            dateKey: formatDateKey(pYear, pMonth, pDate),
+            dayNumber: pDate,
+            inMonth: inMonth,
+            dayIndex: i
+          });
+
+          currentPointer.setDate(
+            currentPointer.getDate() + 1
+          );
+        }
+
+        if (hasDaysInMonth) weeks.push(weekDays);
+
+        if (
+          currentPointer.getMonth() !== month &&
+          currentPointer.getDate() > 7
+        ) {
+          break;
+        }
+      }
+
+      return weeks;
+    }
+
+    function initWeekForCurrentDate() {
+      const today = new Date();
+
+      currentYear = today.getFullYear();
+      currentMonth = today.getMonth();
+
+      const weeks =
+        getMonthWeeks(currentYear, currentMonth);
+
+      const todayKey =
+        formatDateKey(
+          currentYear,
+          currentMonth,
+          today.getDate()
+        );
+
+      currentWeekIndex = 0;
+
+      weeks.forEach((w, index) => {
+        if (
+          w.some(
+            d =>
+              d.dateKey === todayKey &&
+              d.inMonth
+          )
+        ) {
+          currentWeekIndex = index;
+        }
+      });
+    }
+
+    function getDayTasks(key, isWeekend = false) {
+      const data = window.db[key];
+      let tasks = [];
+
+      if (data) {
+        if (typeof data === "string") {
+          const lines =
+            data
+              .split("\n")
+              .filter(l => l.trim() !== "");
+
+          tasks = lines.map(l => ({
+            text: l.replace(/^[-X*]\s*/, ""),
+            done: false
+          }));
+
+        } else if (Array.isArray(data)) {
+          tasks = data.map(t =>
+            typeof t === "string"
+              ? { text: t, done: false }
+              : {
+                  text: t.text || "",
+                  done: !!t.done
+                }
+          );
+        }
+      }
+
+      const targetLength =
+        isWeekend ? 6 : 10;
+
+      if (tasks.length > targetLength) {
+        tasks = tasks.slice(0, targetLength);
+      } else {
+        while (tasks.length < targetLength) {
+          tasks.push({
+            text: "",
+            done: false
+          });
+        }
+      }
+
+      return tasks;
+    }
+
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/"/g, "&quot;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    function createDayCard(
+      dayInfo,
+      dayName,
+      isWeekend = false,
+      isDomingo = false
+    ) {
+      const card =
+        document.createElement("div");
+
+      const today = new Date();
+
+      const todayKey =
+        formatDateKey(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate()
+        );
+
+      const isToday =
+        dayInfo.inMonth &&
+        todayKey === dayInfo.dateKey;
+
+      card.className =
+        `day-card
+         ${isWeekend ? "is-weekend" : "is-weekday"}
+         ${isDomingo ? "is-domingo" : ""}
+         ${!dayInfo.inMonth ? "out-month" : ""}
+         ${isToday ? "is-today" : ""}`;
+
+      if (!dayInfo.inMonth) {
+        card.innerHTML = `
+          <div class="day-header">
+            <span class="day-name">${dayName}</span>
+            <span class="day-date">-</span>
+          </div>
+          <div style="font-size:0.65rem;color:#555555;padding-top:4px;text-align:center;">
+            Fuera de mes
+          </div>
+        `;
+
+        return card;
+      }
+
+      const tasks =
+        getDayTasks(
+          dayInfo.dateKey,
+          isWeekend
+        );
+
+      const rowsHtml =
+        tasks.map((t, index) => {
+
+          const emojiHtml =
+            t.done
+              ? `<span class="task-status-emoji" title="Cumplida">🌸</span>`
+              : "";
+
+          return `
+            <div class="task-row">
+
+              <input
+                type="checkbox"
+                class="task-checkbox"
+                ${t.done ? "checked" : ""}
+                onchange="toggleTask('${dayInfo.dateKey}', ${index}, ${isWeekend})"
+              >
+
+              <input
+                type="text"
+                class="task-input ${t.done ? "completed" : ""}"
+                value="${escapeHtml(t.text)}"
+                onfocus="window.handleFocus()"
+                onblur="window.handleBlur()"
+                oninput="updateTaskText('${dayInfo.dateKey}', ${index}, this.value, ${isWeekend})"
+                onkeydown="handleKeyDown(event, '${dayInfo.dateKey}', ${index})"
+              >
+
+              ${emojiHtml}
+
+              <button
+                class="btn-del"
+                onclick="deleteTask('${dayInfo.dateKey}', ${index}, ${isWeekend})"
+              >🗑</button>
+
+            </div>
+          `;
+        }).join("");
+
+      card.innerHTML = `
+        <div class="day-header">
+          <span class="day-name">${dayName}</span>
+          <span class="day-date">${dayInfo.dayNumber}</span>
+        </div>
+
+        <div
+          class="task-list"
+          id="list_${dayInfo.dateKey}"
+        >
+          ${rowsHtml}
+        </div>
+      `;
+
+      return card;
+    }
+
+    window.renderPlanner = function() {
+      const monthNames = [
+        "Enero",
+        "Febrero",
+        "Marzo",
+        "Abril",
+        "Mayo",
+        "Junio",
+        "Julio",
+        "Agosto",
+        "Septiembre",
+        "Octubre",
+        "Noviembre",
+        "Diciembre"
+      ];
+
+      const weeks =
+        getMonthWeeks(
+          currentYear,
+          currentMonth
+        );
+
+      if (currentWeekIndex >= weeks.length) {
+        currentWeekIndex =
+          weeks.length - 1;
+      }
+
+      if (currentWeekIndex < 0) {
+        currentWeekIndex = 0;
+      }
+
+      const currentWeek =
+        weeks[currentWeekIndex];
+
+      document.getElementById(
+        "weekTitle"
+      ).innerText =
+        `${monthNames[currentMonth]} ${currentYear} (Sem ${currentWeekIndex + 1}/${weeks.length})`;
+
+      const grid =
+        document.getElementById(
+          "plannerGrid"
+        );
+
+      grid.innerHTML = "";
+      grid.classList.remove("fade-in");
+
+      void grid.offsetWidth;
+
+      grid.classList.add("fade-in");
+
+      const dayNames = [
+        "Lunes",
+        "Martes",
+        "Miércoles",
+        "Jueves",
+        "Viernes",
+        "Sábado",
+        "Domingo"
+      ];
+
+      grid.appendChild(
+        createDayCard(
+          currentWeek[0],
+          dayNames[0],
+          false
+        )
+      );
+
+      grid.appendChild(
+        createDayCard(
+          currentWeek[1],
+          dayNames[1],
+          false
+        )
+      );
+
+      grid.appendChild(
+        createDayCard(
+          currentWeek[2],
+          dayNames[2],
+          false
+        )
+      );
+
+      grid.appendChild(
+        createDayCard(
+          currentWeek[3],
+          dayNames[3],
+          false
+        )
+      );
+
+      grid.appendChild(
+        createDayCard(
+          currentWeek[4],
+          dayNames[4],
+          false
+        )
+      );
+
+      grid.appendChild(
+        createDayCard(
+          currentWeek[5],
+          dayNames[5],
+          true
+        )
+      );
+
+      grid.appendChild(
+        createDayCard(
+          currentWeek[6],
+          dayNames[6],
+          true,
+          true
+        )
+      );
+    };
+
+    function updateTaskText(
+      key,
+      index,
+      text,
+      isWeekend = false
+    ) {
+      const tasks =
+        getDayTasks(key, isWeekend);
+
+      tasks[index].text = text;
+
+      window.db[key] = tasks;
+
+      localStorage.setItem(
+        "weekly_planner_v5_db",
+        JSON.stringify(window.db)
+      );
+
+      // Guarda solamente este día.
+      if (window.saveDayToCloud) {
+        window.saveDayToCloud(key);
+      }
+    }
+
+    function toggleTask(
+      key,
+      index,
+      isWeekend = false
+    ) {
+      const tasks =
+        getDayTasks(key, isWeekend);
+
+      tasks[index].done =
+        !tasks[index].done;
+
+      window.db[key] = tasks;
+
+      localStorage.setItem(
+        "weekly_planner_v5_db",
+        JSON.stringify(window.db)
+      );
+
+      if (window.saveDayToCloud) {
+        window.saveDayToCloud(key);
+      }
+
+      renderPlanner();
+    }
+
+    function deleteTask(
+      key,
+      index,
+      isWeekend = false
+    ) {
+      const tasks =
+        getDayTasks(key, isWeekend);
+
+      tasks[index] = {
+        text: "",
+        done: false
+      };
+
+      window.db[key] = tasks;
+
+      localStorage.setItem(
+        "weekly_planner_v5_db",
+        JSON.stringify(window.db)
+      );
+
+      if (window.saveDayToCloud) {
+        window.saveDayToCloud(key);
+      }
+
+      renderPlanner();
+    }
+
+    function handleKeyDown(
+      e,
+      key,
+      index
+    ) {
+      const list =
+        document.getElementById(
+          `list_${key}`
+        );
+
+      if (!list) return;
+
+      const inputs =
+        list.querySelectorAll(
+          ".task-input"
+        );
+
+      if (e.key === "Enter") {
+        e.preventDefault();
+
+        if (inputs[index + 1]) {
+          inputs[index + 1].focus();
+        }
+
+      } else if (
+        e.key === "Backspace" &&
+        e.target.value === ""
+      ) {
+        if (
+          index > 0 &&
+          inputs[index - 1]
+        ) {
+          e.preventDefault();
+          inputs[index - 1].focus();
+        }
+      }
+    }
+
+    function changeWeek(direction) {
+      const weeks =
+        getMonthWeeks(
+          currentYear,
+          currentMonth
+        );
+
+      currentWeekIndex += direction;
+
+      if (currentWeekIndex < 0) {
+        currentMonth--;
+
+        if (currentMonth < 0) {
+          currentMonth = 11;
+          currentYear--;
+        }
+
+        const prevMonthWeeks =
+          getMonthWeeks(
+            currentYear,
+            currentMonth
+          );
+
+        currentWeekIndex =
+          prevMonthWeeks.length - 1;
+
+      } else if (
+        currentWeekIndex >= weeks.length
+      ) {
+        currentMonth++;
+
+        if (currentMonth > 11) {
+          currentMonth = 0;
+          currentYear++;
+        }
+
+        currentWeekIndex = 0;
+      }
+
+      renderPlanner();
+    }
+
+    function goToday() {
+      initWeekForCurrentDate();
+      renderPlanner();
+    }
+
+
+    window.openSettings = function() {
+      document.getElementById("settingsOverlay").classList.add("open");
+      window.applyPlannerSettings(window.getPlannerSettings());
+    };
+
+    window.closeSettings = function() {
+      document.getElementById("settingsOverlay").classList.remove("open");
+      if (window.savePlannerSettings) window.savePlannerSettings();
+    };
+
+    window.closeSettingsIfOutside = function(event) {
+      if (event.target.id === "settingsOverlay") window.closeSettings();
+    };
+
+    window.resetSettings = function() {
+      if (!confirm("¿Restablecer el diseño original?")) return;
+      window.resetPlannerSettingsLocal();
+      if (window.savePlannerSettings) window.savePlannerSettings();
+    };
+
+    function getSettingValue(el) {
+      if (el.type === "checkbox") return el.checked;
+      if (el.type === "range") return Number(el.value);
+      return el.value;
+    }
+
+    function handleSettingChange(el) {
+      const current = window.getPlannerSettings();
+      current[el.dataset.setting] = getSettingValue(el);
+      window.applyPlannerSettings(current);
+      if (window.savePlannerSettings) window.savePlannerSettings();
+    }
+
+    document.addEventListener("input", event => {
+      const el = event.target;
+      if (!(el instanceof HTMLElement) || !el.matches("[data-setting]")) return;
+      handleSettingChange(el);
+    });
+
+    document.addEventListener("change", event => {
+      const el = event.target;
+      if (!(el instanceof HTMLElement) || !el.matches("[data-setting]")) return;
+      handleSettingChange(el);
+    });
+
+    // Navegación táctil.
+    let swipeStartX = 0;
+    let swipeStartY = 0;
+    window.setPlannerSyncStatus = function(text, type) {
+      const elem = document.getElementById("syncStatus");
+      if (!elem) return;
+      elem.innerText = text;
+      elem.classList.remove("online", "syncing", "error");
+      if (type) elem.classList.add(type);
+    };
+
+    let initialTouchCount = 0;
+
+    const mainContainer =
+      document.getElementById(
+        "mainContainer"
+      );
+
+    mainContainer.addEventListener(
+      "touchstart",
+      (e) => {
+        initialTouchCount =
+          e.touches.length;
+
+        if (e.touches.length > 0) {
+          swipeStartX =
+            e.touches[0].screenX;
+
+          swipeStartY =
+            e.touches[0].screenY;
+        }
+      },
+      { passive: true }
+    );
+
+    mainContainer.addEventListener(
+      "touchend",
+      (e) => {
+
+        const isZoomed =
+          window.visualViewport &&
+          window.visualViewport.scale > 1.05;
+
+        if (
+          isZoomed &&
+          initialTouchCount < 2
+        ) {
+          return;
+        }
+
+        if (
+          e.changedTouches.length > 0
+        ) {
+          const diffX =
+            e.changedTouches[0].screenX -
+            swipeStartX;
+
+          const diffY =
+            e.changedTouches[0].screenY -
+            swipeStartY;
+
+          if (
+            Math.abs(diffX) > 80 &&
+            Math.abs(diffX) >
+              Math.abs(diffY) * 1.5
+          ) {
+            if (diffX < 0) {
+              changeWeek(1);
+            } else {
+              changeWeek(-1);
+            }
+          }
+        }
+      },
+      { passive: true }
+    );
+
+    function exportData() {
+      const dataStr =
+        "data:text/json;charset=utf-8," +
+        encodeURIComponent(
+          JSON.stringify(
+            window.db,
+            null,
+            2
+          )
+        );
+
+      const dlAnchor =
+        document.createElement("a");
+
+      dlAnchor.setAttribute(
+        "href",
+        dataStr
+      );
+
+      dlAnchor.setAttribute(
+        "download",
+        `planificador_${currentYear}_${currentMonth + 1}.json`
+      );
+
+      document.body.appendChild(
+        dlAnchor
+      );
+
+      dlAnchor.click();
+      dlAnchor.remove();
+    }
+
+    function importData() {
+      document.getElementById(
+        "fileInput"
+      ).click();
+    }
+
+    function loadJSONFile(event) {
+      const file =
+        event.target.files[0];
+
+      if (!file) return;
+
+      const reader =
+        new FileReader();
+
+      reader.onload = function(e) {
+        try {
+          const imported =
+            JSON.parse(
+              e.target.result
+            );
+
+          window.db = {
+            ...window.db,
+            ...imported
+          };
+
+          localStorage.setItem(
+            "weekly_planner_v5_db",
+            JSON.stringify(window.db)
+          );
+
+          // Sincroniza los días importados.
+          Object.keys(imported).forEach(
+            key => {
+              if (window.saveDayToCloud) {
+                window.saveDayToCloud(key);
+              }
+            }
+          );
+
+          renderPlanner();
+
+          alert(
+            "¡Sincronización de archivo completada con éxito!"
+          );
+
+        } catch(err) {
+          console.error(err);
+          alert(
+            "Archivo de copia no válido."
+          );
+        }
+      };
+
+      reader.readAsText(file);
+
+      // Permite volver a seleccionar el mismo archivo.
+      event.target.value = "";
+    }
+
+    initWeekForCurrentDate();
+    renderPlanner();
+    window.applyPlannerSettings(window.getPlannerSettings());
+  </script>
+
+</body>
+</html>
