@@ -474,7 +474,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = {
   apiKey: "AIzaSyBi4ADlX3WOerYcY0aKpKd-_453B8K5fR4",
@@ -495,7 +495,24 @@
     try {
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
-      await signInAnonymously(auth);
+      const googleProvider = new GoogleAuthProvider();
+      // Sugiere esta cuenta de Google; no garantiza acceso silencioso solo por tener Chrome abierto.
+      googleProvider.setCustomParameters({ login_hint: "axxel100@gmail.com" });
+
+      // Si todavía no hay una sesión Firebase de Google, inicia el acceso mediante redirección.
+      // Firebase conserva la sesión para las próximas aperturas del planificador.
+      await new Promise(resolve => {
+        const unsubscribe = onAuthStateChanged(auth, user => {
+          unsubscribe();
+          resolve(user);
+        });
+      });
+      await getRedirectResult(auth);
+      if (!auth.currentUser || auth.currentUser.isAnonymous || auth.currentUser.email !== "axxel100@gmail.com") {
+        await signInWithRedirect(auth, googleProvider);
+        return;
+      }
+
       const database = getDatabase(app);
       const dbRef = ref(database, "weekly_planner_db");
       const settingsRef = ref(database, "planner_settings");
