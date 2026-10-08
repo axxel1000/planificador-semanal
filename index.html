@@ -1,17 +1,16 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
-  <meta name="theme-color" content="#111111">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="theme-color" content="#000000">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="Planificador">
-  <link rel="manifest" href="./manifest.json">
-  <link rel="icon" href="./icons/icon-192.png">
-  <link rel="apple-touch-icon" href="./icons/icon-192.png">
+  <link rel="icon" href="./icons/icon-192.png" type="image/png">
 
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
   <title>Planificador Semanal por Meses</title>
 
   <style>
@@ -331,6 +330,35 @@
       margin-top: 8px;
     }
 
+
+
+    .day-tools {
+      display: flex;
+      gap: 3px;
+      margin-top: 3px;
+      width: 100%;
+    }
+
+    .day-tools button {
+      flex: 1;
+      min-width: 0;
+      padding: 3px 4px;
+      font-size: 0.62rem;
+      line-height: 1.1;
+    }
+
+    .task-select {
+      width: 14px;
+      height: 14px;
+      flex: 0 0 14px;
+      margin: 0 2px 0 0;
+      accent-color: #2563eb;
+      cursor: pointer;
+    }
+
+    .task-row .task-input {
+      min-width: 0;
+    }
   </style>
 
   <!-- Motor de personalización (no depende de Firebase) -->
@@ -446,16 +474,19 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyDTuO925sL4dIDUHSaVWZApJay3Cb8vt6k",
-      authDomain: "planificador-632f0.firebaseapp.com",
-      databaseURL: "https://planificador-632f0-default-rtdb.firebaseio.com",
-      projectId: "planificador-632f0",
-      storageBucket: "planificador-632f0.firebasestorage.app",
-      messagingSenderId: "650791018066",
-      appId: "1:650791018066:web:e7cb9c9bd4ab45b4a8498b"
-    };
+  apiKey: "AIzaSyBi4ADlX3WOerYcY0aKpKd-_453B8K5fR4",
+  authDomain: "planificador-38de4.firebaseapp.com",
+  databaseURL: "https://planificador-38de4-default-rtdb.firebaseio.com",
+  projectId: "planificador-38de4",
+  storageBucket: "planificador-38de4.firebasestorage.app",
+  messagingSenderId: "442490468985",
+  appId: "1:442490468985:web:4828decf8f80ac2eebf2a8",
+  measurementId: "G-5S8NV51S82"
+};
+
 
     let firebaseReady = false;
     let settingsSavePending = false;
@@ -463,6 +494,8 @@
 
     try {
       const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      await signInAnonymously(auth);
       const database = getDatabase(app);
       const dbRef = ref(database, "weekly_planner_db");
       const settingsRef = ref(database, "planner_settings");
@@ -564,19 +597,10 @@
       console.error("Firebase no disponible. El planificador seguirá funcionando localmente:", err);
     }
   </script>
-
-<script>
-  // Instalación PWA: el Service Worker solo se registra cuando se sirve por HTTPS
-  // (por ejemplo, mediante GitHub Pages).
-  if ("serviceWorker" in navigator && location.protocol === "https:") {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker.register("./service-worker.js")
-        .then(() => console.log("PWA: Service Worker registrado"))
-        .catch(err => console.warn("PWA: no se pudo registrar el Service Worker:", err));
-    });
-  }
-</script>
-
+  <meta name="theme-color" content="#111111">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="./manifest.json">
 </head>
 
 <body>
@@ -629,7 +653,7 @@
           <label class="setting-row">
             Tipo de fuente
             <select data-setting="fontFamily">
-              <option value='"Comic Sans MS", "Comic Sans", "Comic Neue",'cursive',>Comic Sans</option>
+              <option value='"Comic Sans MS", "Comic Sans", "Comic Neue", cursive'>Comic Sans</option>
               <option value="Arial, Helvetica, sans-serif">Arial</option>
               <option value="Verdana, Geneva, sans-serif">Verdana</option>
               <option value="Tahoma, Geneva, sans-serif">Tahoma</option>
@@ -981,6 +1005,11 @@
           <span class="day-date">${dayInfo.dayNumber}</span>
         </div>
 
+        <div class="day-tools">
+          <button type="button" class="btn-outline" title="Copiar todo lo cargado en este día" onclick="copyDayContent('${dayInfo.dateKey}', ${isWeekend})">📋 Copiar</button>
+          <button type="button" class="btn-outline" title="Pegar en este día" onclick="pasteDayContent('${dayInfo.dateKey}', ${isWeekend})">📥 Pegar</button>
+        </div>
+
         <div
           class="task-list"
           id="list_${dayInfo.dateKey}"
@@ -1186,6 +1215,106 @@
 
       renderPlanner();
     }
+
+    // Copiar y pegar contenido completo entre días.
+    // Se usa localStorage como portapapeles interno para que funcione
+    // también cuando el HTML se abre como archivo local o en móvil.
+    const PLANNER_CLIPBOARD_KEY = "planner_internal_clipboard_v5";
+
+    function getPlannerClipboard() {
+      try {
+        const raw = localStorage.getItem(PLANNER_CLIPBOARD_KEY);
+        if (!raw) return null;
+        const data = JSON.parse(raw);
+        if (!data || data.type !== "planificador-dia-v2" || !Array.isArray(data.tasks)) return null;
+        return data;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function setPlannerClipboard(data) {
+      try {
+        localStorage.setItem(PLANNER_CLIPBOARD_KEY, JSON.stringify(data));
+        window.plannerClipboard = data;
+        return true;
+      } catch (e) {
+        console.error("No se pudo guardar el contenido copiado:", e);
+        return false;
+      }
+    }
+
+    window.plannerClipboard = getPlannerClipboard();
+
+    function copyDayContent(key, isWeekend = false) {
+      const tasks = getDayTasks(key, isWeekend);
+      // Copia únicamente lo que realmente está cargado, manteniendo
+      // el orden de los renglones. Un día con 1, 2 o todos los renglones funciona igual.
+      const loadedTasks = tasks
+        .map((task, index) => ({
+          originalIndex: index,
+          text: String(task?.text || ""),
+          done: !!task?.done
+        }))
+        .filter(task => task.text.trim() !== "");
+
+      if (!loadedTasks.length) {
+        setPlannerSyncStatus?.("⚠️ Este día no tiene contenido para copiar", "error");
+        return false;
+      }
+
+      const payload = {
+        type: "planificador-dia-v2",
+        source: key,
+        tasks: loadedTasks
+      };
+
+      if (!setPlannerClipboard(payload)) {
+        setPlannerSyncStatus?.("⚠️ No se pudo copiar el día", "error");
+        return false;
+      }
+
+      setPlannerSyncStatus?.(
+        `📋 ${loadedTasks.length} renglón${loadedTasks.length === 1 ? "" : "es"} copiado${loadedTasks.length === 1 ? "" : "s"}`,
+        "online"
+      );
+      return true;
+    }
+
+    function pasteDayContent(key, isWeekend = false) {
+      const payload = getPlannerClipboard() || window.plannerClipboard;
+
+      if (!payload || payload.type !== "planificador-dia-v2" || !Array.isArray(payload.tasks) || !payload.tasks.length) {
+        setPlannerSyncStatus?.("⚠️ Primero copiá un día con contenido", "error");
+        return false;
+      }
+
+      const current = getDayTasks(key, isWeekend);
+      const maxRows = current.length;
+      const result = current.map(task => ({ text: String(task?.text || ""), done: !!task?.done }));
+      let targetIndex = 0;
+
+      // Pega desde el primer renglón disponible y continúa hacia abajo.
+      // Si el destino ya tiene contenido, lo reemplaza desde el primer renglón.
+      for (const task of payload.tasks) {
+        if (targetIndex >= maxRows) break;
+        result[targetIndex] = { text: task.text, done: task.done };
+        targetIndex++;
+      }
+
+      window.db[key] = result;
+      localStorage.setItem("weekly_planner_v5_db", JSON.stringify(window.db));
+      if (window.saveDayToCloud) window.saveDayToCloud(key);
+      renderPlanner();
+
+      const pasted = Math.min(payload.tasks.length, maxRows);
+      setPlannerSyncStatus?.(
+        `📥 ${pasted} renglón${pasted === 1 ? "" : "es"} pegado${pasted === 1 ? "" : "s"}`,
+        "online"
+      );
+      return true;
+    }
+
 
     function handleKeyDown(
       e,
@@ -1493,5 +1622,6 @@
     window.applyPlannerSettings(window.getPlannerSettings());
   </script>
 
+<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(e=>console.warn("PWA SW:",e)));}</script>
 </body>
 </html>
