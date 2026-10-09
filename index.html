@@ -510,7 +510,6 @@
       await getRedirectResult(auth);
       if (!auth.currentUser || auth.currentUser.isAnonymous || auth.currentUser.email !== "axxel100@gmail.com") {
         await signInWithRedirect(auth, googleProvider);
-        return;
       }
 
       const database = getDatabase(app);
