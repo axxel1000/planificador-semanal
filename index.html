@@ -1,56 +1,25 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <link rel="manifest" href="./manifest.webmanifest">
-  <meta name="theme-color" content="#000000">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="Planificador">
-  <link rel="icon" href="./icons/icon-192.png" type="image/png">
-
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
   <title>Planificador Semanal por Meses</title>
 
   <style>
-    :root {
-      --app-bg: #000000;
-      --app-text: #ffffff;
-      --header-bg: #111111;
-      --header-border: #333333;
-      --day-bg: #111111;
-      --day-border: #333333;
-      --today-bg: #0a1120;
-      --today-border: #2563eb;
-      --day-header-line: #282828;
-      --day-name: #94a3b8;
-      --today-name: #60a5fa;
-      --task-text: #ffffff;
-      --line-color: #282828;
-      --line-width: 1px;
-      --completed-color: #ff1493;
-      --button-bg: #2563eb;
-      --button-secondary: #475569;
-      --font-family: "Comic Sans MS", "Comic Sans", "Comic Neue", cursive, sans-serif;
-      --base-font-size: 0.8rem;
-      --task-row-height: 28px;
-      --task-gap: 0px;
-      --card-radius: 6px;
-    }
-
     * {
       box-sizing: border-box;
       margin: 0;
       padding: 0;
-      font-family: var(--font-family) !important;
-    }
+      font-family: "Comic Sans MS", "Comic Sans", "Comic Neue", normal, sans-serif !important;
+    font-style:normal;
+    text-transform:uppercase;
+}
 
     html, body {
       width: 100vw;
       height: 100dvh;
-      background-color: var(--app-bg);
-      color: var(--app-text);
+      background-color: #000000;
+      color: #ffffff;
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -59,8 +28,8 @@
     header {
       flex-shrink: 0;
       height: 48px;
-      background: var(--header-bg);
-      border-bottom: var(--line-width) solid var(--header-border);
+      background: #111111;
+      border-bottom: 1px solid #333333;
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -69,12 +38,12 @@
     }
 
     .title-area { display: flex; align-items: center; gap: 6px; }
-    .week-title { font-size: clamp(0.8rem, 2.2vw, 1.05rem); font-weight: 700; color: var(--task-text); }
+    .week-title { font-size: clamp(0.8rem, 2.2vw, 1.05rem); font-weight: 700; color: #ffffff; }
     .actions { display: flex; gap: 4px; align-items: center; }
 
     button {
-      background: var(--button-bg);
-      color: var(--task-text);
+      background: #2563eb;
+      color: #ffffff;
       border: none;
       padding: 5px 8px;
       border-radius: 6px;
@@ -87,8 +56,9 @@
     }
 
     button:active { transform: scale(0.96); }
-    button.btn-secondary { background: var(--button-secondary); color: var(--task-text); }
-    button.btn-outline { background: transparent; color: var(--task-text); border: 1px solid #444444; }
+    button.btn-secondary { background: #475569; color: #ffffff; }
+    button.btn-outline { background: transparent; color: #ffffff; border: 1px solid #444444; }
+    button.btn-auth { background: #1f2937; color: #ffffff; border: 1px solid #444444; }
 
     .sync-badge {
       font-size: 0.7rem;
@@ -125,9 +95,9 @@
     .day-card.is-domingo { grid-column: 1 / -1; }
 
     .day-card {
-      background: var(--day-bg);
-      border: var(--line-width) solid var(--day-border);
-      border-radius: var(--card-radius);
+      background: #111111;
+      border: 1px solid #333333;
+      border-radius: 6px;
       display: flex;
       flex-direction: column;
       padding: 4px 6px;
@@ -136,20 +106,20 @@
     }
 
     .day-card.out-month {
-      background: color-mix(in srgb, var(--day-bg) 90%, #ffffff 10%);
+      background: #181818;
       opacity: 0.35;
       border-style: dashed;
       pointer-events: none;
     }
 
     .day-card.is-today {
-      border: calc(var(--line-width) + 1px) solid var(--today-border);
-      background: var(--today-bg);
+      border: 2px solid #2563eb;
+      background: #0a1120;
     }
 
     .day-header {
       flex-shrink: 0;
-      border-bottom: var(--line-width) solid var(--day-header-line);
+      border-bottom: 1px solid #282828;
       padding-bottom: 2px;
       margin-bottom: 3px;
       display: flex;
@@ -161,11 +131,11 @@
       font-size: clamp(0.7rem, 1.1vw, 0.82rem);
       font-weight: 700;
       text-transform: uppercase;
-      color: var(--day-name);
+      color: #94a3b8;
     }
 
-    .day-card.is-today .day-name { color: var(--today-name); }
-    .day-date { font-size: clamp(0.75rem, 1.2vw, 0.88rem); font-weight: 700; color: var(--task-text); }
+    .day-card.is-today .day-name { color: #60a5fa; }
+    .day-date { font-size: clamp(0.75rem, 1.2vw, 0.88rem); font-weight: 700; color: #ffffff; }
 
     .task-list {
       display: flex;
@@ -181,17 +151,17 @@
       display: flex;
       align-items: center;
       gap: 4px;
-      border-bottom: var(--line-width) var(--line-style, dashed) var(--line-color);
+      border-bottom: 1px dashed #282828;
       padding: 1px 0;
-      height: var(--task-row-height);
-      min-height: var(--task-row-height);
+      height: 28px;
+      min-height: 28px;
       box-sizing: border-box;
     }
 
     .task-checkbox {
       width: 14px;
       height: 14px;
-      accent-color: var(--completed-color);
+      accent-color: #ff1493;
       cursor: pointer;
       flex-shrink: 0;
     }
@@ -201,16 +171,15 @@
       border: none;
       outline: none;
       background: transparent;
-      font-size: var(--base-font-size);
-      color: var(--task-text);
+      font-size: 0.8rem;
+      color: #ffffff;
       font-family: inherit;
       width: 100%;
     }
 
     .task-input.completed {
-      color: var(--completed-color);
+      color: #ff1493;
       font-weight: 600;
-      text-decoration: none;
     }
 
     .task-status-emoji {
@@ -231,392 +200,310 @@
     .btn-del:hover { color: #ef4444; }
 
     ::-webkit-scrollbar { width: 4px; }
-    ::-webkit-scrollbar-track { background: var(--app-bg); }
+    ::-webkit-scrollbar-track { background: #000000; }
     ::-webkit-scrollbar-thumb { background: #333333; border-radius: 2px; }
 
     .fade-in { animation: fadeIn 0.12s ease-in-out; }
     @keyframes fadeIn { from { opacity: 0.6; } to { opacity: 1; } }
-
-    /* ===== Panel de personalización ===== */
-    .settings-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.62);
-      z-index: 100;
-      display: none;
-      align-items: flex-start;
-      justify-content: flex-end;
-    }
-    .settings-overlay.open { display: flex; }
-
-    .settings-panel {
-      width: min(390px, 94vw);
-      height: 100dvh;
-      overflow-y: auto;
-      background: #151515;
-      color: #fff;
-      padding: 14px;
-      box-shadow: -5px 0 18px rgba(0,0,0,.45);
-    }
-    .settings-title {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      margin-bottom: 12px;
-      font-size: 1.05rem;
-      font-weight: 700;
-    }
-    .settings-section {
-      border: 1px solid #3a3a3a;
-      border-radius: 8px;
-      margin-bottom: 9px;
-      overflow: hidden;
-    }
-    .settings-section summary {
-      cursor: pointer;
-      padding: 9px 10px;
-      background: #202020;
-      font-weight: 700;
-      user-select: none;
-    }
-    .settings-body { padding: 9px 10px 10px; }
-    .setting-row {
-      display: grid;
-      grid-template-columns: 1fr auto;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 9px;
-      font-size: .78rem;
-    }
-    .setting-row:last-child { margin-bottom: 0; }
-    .setting-row input[type="color"] {
-      width: 48px;
-      height: 30px;
-      padding: 2px;
-      border: 1px solid #555;
-      border-radius: 5px;
-      background: #111;
-    }
-    .setting-row input[type="range"] { width: 145px; }
-    .setting-row select {
-      min-width: 145px;
-      background: #111;
-      color: #fff;
-      border: 1px solid #555;
-      border-radius: 5px;
-      padding: 5px;
-    }
-    .range-value {
-      display: inline-block;
-      min-width: 42px;
-      text-align: right;
-      color: #aaa;
-    }
-    .settings-actions {
-      display: flex;
-      gap: 7px;
-      margin-top: 12px;
-      position: sticky;
-      bottom: 0;
-      background: #151515;
-      padding-top: 9px;
-    }
-    .settings-actions button { flex: 1; justify-content: center; }
-    .settings-hint {
-      color: #999;
-      font-size: .7rem;
-      line-height: 1.35;
-      margin-top: 8px;
-    }
-
-
-
-    .day-tools {
-      display: flex;
-      gap: 3px;
-      margin-top: 3px;
-      width: 100%;
-    }
-
-    .day-tools button {
-      flex: 1;
-      min-width: 0;
-      padding: 3px 4px;
-      font-size: 0.62rem;
-      line-height: 1.1;
-    }
-
-    .task-select {
-      width: 14px;
-      height: 14px;
-      flex: 0 0 14px;
-      margin: 0 2px 0 0;
-      accent-color: #2563eb;
-      cursor: pointer;
-    }
-
-    .task-row .task-input {
-      min-width: 0;
-    }
   </style>
 
-  <!-- Motor de personalización (no depende de Firebase) -->
-  <script>
-    (function () {
-      const DEFAULT_SETTINGS = {
-        appBg: "#000000",
-        appText: "#ffffff",
-        headerBg: "#111111",
-        headerBorder: "#333333",
-        dayBg: "#111111",
-        dayBorder: "#333333",
-        todayBg: "#0a1120",
-        todayBorder: "#2563eb",
-        dayHeaderLine: "#282828",
-        dayName: "#94a3b8",
-        todayName: "#60a5fa",
-        lineColor: "#282828",
-        completedColor: "#ff1493",
-        taskText: "#ffffff",
-        buttonBg: "#2563eb",
-        buttonSecondary: "#475569",
-        fontFamily: '"Comic Sans MS", "Comic Sans", "Comic Neue", cursive',
-        baseFontSize: 0.8,
-        taskRowHeight: 28,
-        cardRadius: 6,
-        lineStyle: "dashed",
-        completedStrike: false,
-        completedBold: true
-      };
-
-      function readLocalSettings() {
-        try {
-          const raw = localStorage.getItem("planner_settings");
-          return raw ? JSON.parse(raw) : {};
-        } catch (e) {
-          console.warn("No se pudieron leer las preferencias locales:", e);
-          return {};
-        }
-      }
-
-      let current = { ...DEFAULT_SETTINGS, ...readLocalSettings() };
-      window.PLANNER_DEFAULT_SETTINGS = Object.freeze({ ...DEFAULT_SETTINGS });
-      window.getPlannerSettings = () => ({ ...current });
-
-      window.applyPlannerSettings = function (next) {
-        current = { ...DEFAULT_SETTINGS, ...(next || {}) };
-        const root = document.documentElement;
-        const vars = {
-          appBg: "--app-bg", appText: "--app-text", headerBg: "--header-bg",
-          headerBorder: "--header-border", dayBg: "--day-bg", dayBorder: "--day-border",
-          todayBg: "--today-bg", todayBorder: "--today-border", dayHeaderLine: "--day-header-line",
-          dayName: "--day-name", todayName: "--today-name", lineColor: "--line-color",
-          completedColor: "--completed-color", taskText: "--task-text", buttonBg: "--button-bg",
-          buttonSecondary: "--button-secondary", fontFamily: "--font-family",
-          baseFontSize: "--base-font-size", taskRowHeight: "--task-row-height",
-          cardRadius: "--card-radius"
-        };
-        Object.entries(vars).forEach(([key, cssVar]) => {
-          let value = current[key];
-          if (["lineWidth", "cardRadius"].includes(key)) value = `${value}px`;
-          if (key === "baseFontSize") value = `${value}rem`;
-          if (key === "taskRowHeight") value = `${value}px`;
-          root.style.setProperty(cssVar, value);
-        });
-        root.style.setProperty("--line-width", `${current.lineWidth}px`);
-        root.style.setProperty("--line-style", current.lineStyle);
-
-        document.querySelectorAll(".task-row").forEach(row => {
-          row.style.borderBottomStyle = current.lineStyle;
-        });
-        document.querySelectorAll(".task-input.completed").forEach(input => {
-          input.style.textDecoration = current.completedStrike ? "line-through" : "none";
-          input.style.fontWeight = current.completedBold ? "600" : "400";
-        });
-
-        const ids = {
-          baseFontSizeValue: `${current.baseFontSize}rem`,
-          lineWidthValue: `${current.lineWidth}px`,
-          taskRowHeightValue: `${current.taskRowHeight}px`,
-          cardRadiusValue: `${current.cardRadius}px`
-        };
-        Object.entries(ids).forEach(([id, value]) => {
-          const el = document.getElementById(id);
-          if (el) el.textContent = value;
-        });
-        document.querySelectorAll("[data-setting]").forEach(el => {
-          const key = el.dataset.setting;
-          if (!(key in current)) return;
-          el.value = el.type === "checkbox" ? "" : current[key];
-          if (el.type === "checkbox") el.checked = !!current[key];
-        });
-
-        try {
-          localStorage.setItem("planner_settings", JSON.stringify(current));
-        } catch (e) {
-          console.warn("No se pudieron guardar las preferencias locales:", e);
-        }
-        window.dispatchEvent(new CustomEvent("planner-settings-applied", { detail: { ...current } }));
-      };
-
-      window.resetPlannerSettingsLocal = function () {
-        window.applyPlannerSettings(DEFAULT_SETTINGS);
-      };
-
-      window.queuePlannerSettingsCloudSave = function () {};
-      window.applyPlannerSettings(current);
-    })();
-  </script>
-
-
-  <!-- Firebase: sincronización opcional de datos y configuración -->
+  <!-- Firebase -->
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-    import { getDatabase, ref, onValue, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
-    import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { initializeApp }
+      from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+
+    import {
+      getAuth,
+      GoogleAuthProvider,
+      signInWithPopup,
+      signOut,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+    import {
+      getDatabase,
+      ref,
+      onValue,
+      set
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+    const ALLOWED_EMAIL = "axxel100@gmail.com";
 
     const firebaseConfig = {
-  apiKey: "AIzaSyBi4ADlX3WOerYcY0aKpKd-_453B8K5fR4",
-  authDomain: "planificador-38de4.firebaseapp.com",
-  databaseURL: "https://planificador-38de4-default-rtdb.firebaseio.com",
-  projectId: "planificador-38de4",
-  storageBucket: "planificador-38de4.firebasestorage.app",
-  messagingSenderId: "442490468985",
-  appId: "1:442490468985:web:4828decf8f80ac2eebf2a8",
-  measurementId: "G-5S8NV51S82"
-};
+      apiKey: "AIzaSyDTuO925sL4dIDUHSaVWZApJay3Cb8vt6k",
+      authDomain: "planificador-632f0.firebaseapp.com",
+      databaseURL: "https://planificador-632f0-default-rtdb.firebaseio.com",
+      projectId: "planificador-632f0",
+      storageBucket: "planificador-632f0.firebasestorage.app",
+      messagingSenderId: "650791018066",
+      appId: "1:650791018066:web:e7cb9c9bd4ab45b4a8498b"
+    };
 
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const database = getDatabase(app);
+    const googleProvider = new GoogleAuthProvider();
+    googleProvider.setCustomParameters({ prompt: "select_account", hd: "gmail.com" });
 
-    let firebaseReady = false;
-    let settingsSavePending = false;
-    let settingsSaveTimer = null;
+    const dbRef = ref(database, "weekly_planner_db");
+    const connectedRef = ref(database, ".info/connected");
 
-    try {
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const googleProvider = new GoogleAuthProvider();
-      // Sugiere esta cuenta de Google; no garantiza acceso silencioso solo por tener Chrome abierto.
-      googleProvider.setCustomParameters({ login_hint: "axxel100@gmail.com" });
+    const pendingKeys = new Set();
+    const saveTimers = new Map();
 
-      // Si todavía no hay una sesión Firebase de Google, inicia el acceso mediante redirección.
-      // Firebase conserva la sesión para las próximas aperturas del planificador.
-      await new Promise(resolve => {
-        const unsubscribe = onAuthStateChanged(auth, user => {
-          unsubscribe();
-          resolve(user);
-        });
-      });
-      await getRedirectResult(auth);
-      if (!auth.currentUser || auth.currentUser.isAnonymous || auth.currentUser.email !== "axxel100@gmail.com") {
-        await signInWithRedirect(auth, googleProvider);
+    let firstCloudRead = true;
+    let cloudConnected = false;
+    let stopConnectedListener = null;
+    let stopDbListener = null;
+
+    function isAllowedEmail(email) {
+      return String(email || "").trim().toLowerCase() === ALLOWED_EMAIL;
+    }
+
+    function setSyncStatus(text, type) {
+      const elem = document.getElementById("syncStatus");
+      if (!elem) return;
+
+      elem.innerText = text;
+      elem.classList.remove("online", "syncing", "error");
+
+      if (type) elem.classList.add(type);
+
+      if (type === "online") {
+        elem.style.color = "";
+      } else if (type === "error") {
+        elem.style.color = "#ef4444";
+      } else {
+        elem.style.color = "";
+      }
+    }
+
+    function updateAuthButton(user) {
+      const btn = document.getElementById("authButton");
+      if (!btn) return;
+
+      if (user && isAllowedEmail(user.email)) {
+        btn.innerText = "Salir";
+        btn.title = user.email;
+      } else {
+        btn.innerText = "Gmail";
+        btn.title = "Conectar con " + ALLOWED_EMAIL;
+      }
+    }
+
+    function disconnectCloud() {
+      cloudConnected = false;
+      firstCloudRead = true;
+
+      if (stopConnectedListener) {
+        stopConnectedListener();
+        stopConnectedListener = null;
       }
 
-      const database = getDatabase(app);
-      const dbRef = ref(database, "weekly_planner_db");
-      const settingsRef = ref(database, "planner_settings");
-      const connectedRef = ref(database, ".info/connected");
-      firebaseReady = true;
+      if (stopDbListener) {
+        stopDbListener();
+        stopDbListener = null;
+      }
 
-      window.savePlannerSettings = function () {
-        if (!firebaseReady) return;
-        const snapshot = window.getPlannerSettings();
-        settingsSavePending = true;
-        if (settingsSaveTimer) clearTimeout(settingsSaveTimer);
-        settingsSaveTimer = setTimeout(() => {
-          set(settingsRef, snapshot)
-            .then(() => { settingsSavePending = false; })
-            .catch(err => {
-              settingsSavePending = false;
-              console.error("Firebase: error al guardar configuración:", err);
-            });
-        }, 150);
-      };
+      pendingKeys.clear();
+      saveTimers.forEach((timer) => clearTimeout(timer));
+      saveTimers.clear();
+    }
 
-      onValue(settingsRef, snapshot => {
-        const remote = snapshot.val();
-        if (remote && !settingsSavePending) {
-          window.applyPlannerSettings(remote);
-        } else if (!remote && !settingsSavePending) {
-          set(settingsRef, window.getPlannerSettings()).catch(err =>
-            console.error("Firebase: error al crear configuración:", err)
-          );
+    window.saveDayToCloud = function(key) {
+      if (!cloudConnected) {
+        return;
+      }
+
+      const tasks = window.db[key];
+
+      if (tasks === undefined) {
+        return;
+      }
+
+      pendingKeys.add(key);
+
+      localStorage.setItem(
+        "weekly_planner_v5_db",
+        JSON.stringify(window.db)
+      );
+
+      if (saveTimers.has(key)) {
+        clearTimeout(saveTimers.get(key));
+      }
+
+      setSyncStatus("🟡 Guardando...", "syncing");
+
+      const timer = setTimeout(() => {
+        if (!cloudConnected || !isAllowedEmail(auth.currentUser && auth.currentUser.email)) {
+          pendingKeys.delete(key);
+          saveTimers.delete(key);
+          return;
         }
-      }, err => console.error("Firebase: error de lectura de configuración:", err));
 
-      onValue(connectedRef, snapshot => {
+        const dayRef = ref(database, "weekly_planner_db/" + key);
+
+        set(dayRef, tasks)
+          .then(() => {
+            pendingKeys.delete(key);
+            saveTimers.delete(key);
+
+            console.log("Firebase: guardado correcto:", key);
+
+            if (pendingKeys.size === 0) {
+              setSyncStatus("🟢 En línea", "online");
+            }
+          })
+          .catch((error) => {
+            console.error("Firebase: error al guardar " + key + ":", error);
+
+            setSyncStatus("🔴 Error al guardar", "error");
+          });
+      }, 600);
+
+      saveTimers.set(key, timer);
+    };
+
+    window.saveDB = function() {
+      localStorage.setItem(
+        "weekly_planner_v5_db",
+        JSON.stringify(window.db)
+      );
+    };
+
+    function connectCloud() {
+      if (cloudConnected) {
+        return;
+      }
+
+      cloudConnected = true;
+
+      stopConnectedListener = onValue(connectedRef, (snapshot) => {
+        if (!cloudConnected) return;
+
         if (snapshot.val() === true) {
-          window.setPlannerSyncStatus?.("🟢 En línea", "online");
+          setSyncStatus("🟢 En línea", "online");
+          console.log("Firebase: conectado");
         } else {
-          window.setPlannerSyncStatus?.("🔴 Sin conexión", "error");
+          setSyncStatus("🔴 Sin conexión", "error");
+          console.log("Firebase: desconectado");
         }
       });
 
-      window.__plannerFirebase = { database, dbRef, settingsRef, ref, set };
-
-      const pendingKeys = new Set();
-      const saveTimers = new Map();
-      let firstCloudRead = true;
-
-      window.saveDayToCloud = function (key) {
-        if (!window.db || window.db[key] === undefined) return;
-        pendingKeys.add(key);
-        localStorage.setItem("weekly_planner_v5_db", JSON.stringify(window.db));
-        window.setPlannerSyncStatus?.("🟡 Guardando...", "syncing");
-        if (saveTimers.has(key)) clearTimeout(saveTimers.get(key));
-        const timer = setTimeout(() => {
-          set(ref(database, "weekly_planner_db/" + key), window.db[key])
-            .then(() => {
-              pendingKeys.delete(key);
-              saveTimers.delete(key);
-              if (!pendingKeys.size) window.setPlannerSyncStatus?.("🟢 En línea", "online");
-            })
-            .catch(err => {
-              console.error("Firebase: error al guardar día:", err);
-              window.setPlannerSyncStatus?.("🔴 Error al guardar", "error");
-            });
-        }, 250);
-        saveTimers.set(key, timer);
-      };
-
-      window.saveDB = function () {
-        localStorage.setItem("weekly_planner_v5_db", JSON.stringify(window.db));
-      };
-
-      onValue(dbRef, snapshot => {
-        const data = snapshot.val();
-        if (firstCloudRead) {
-          firstCloudRead = false;
-          if (data === null) {
-            if (window.db && Object.keys(window.db).length) {
-              set(dbRef, window.db).catch(err => console.error("Firebase: error base inicial:", err));
-            }
+      stopDbListener = onValue(
+        dbRef,
+        (snapshot) => {
+          if (!cloudConnected || !isAllowedEmail(auth.currentUser && auth.currentUser.email)) {
             return;
           }
+
+          const data = snapshot.val();
+
+          console.log("Firebase: datos recibidos", data);
+
+          if (firstCloudRead) {
+            firstCloudRead = false;
+
+            if (data === null) {
+              if (window.db && Object.keys(window.db).length > 0) {
+                console.log("Firebase vacío: subiendo datos locales.");
+
+                set(dbRef, window.db)
+                  .then(() => {
+                    console.log("Firebase: base inicial creada desde datos locales.");
+                    setSyncStatus("🟢 En línea", "online");
+                  })
+                  .catch((error) => {
+                    console.error("Firebase: error al crear base:", error);
+                    setSyncStatus("🔴 Error Firebase", "error");
+                  });
+              }
+
+              return;
+            }
+          }
+
+          if (data === null) {
+            return;
+          }
+
+          const mergedData = { ...data };
+
+          pendingKeys.forEach((key) => {
+            if (window.db && window.db[key] !== undefined) {
+              mergedData[key] = window.db[key];
+            }
+          });
+
+          const currentDataStr = JSON.stringify(window.db || {});
+          const newDataStr = JSON.stringify(mergedData);
+
+          if (currentDataStr !== newDataStr) {
+            window.db = mergedData;
+
+            localStorage.setItem(
+              "weekly_planner_v5_db",
+              JSON.stringify(window.db)
+            );
+
+            if (window.activeInput) {
+              window.pendingRender = true;
+            } else if (window.renderPlanner) {
+              window.renderPlanner();
+            }
+          }
+        },
+        (error) => {
+          console.error("Firebase: error de lectura:", error);
+          setSyncStatus("🔴 Error Firebase", "error");
         }
-        if (data === null) return;
-        const merged = { ...data };
-        pendingKeys.forEach(key => {
-          if (window.db && window.db[key] !== undefined) merged[key] = window.db[key];
-        });
-        if (JSON.stringify(window.db || {}) !== JSON.stringify(merged)) {
-          window.db = merged;
-          localStorage.setItem("weekly_planner_v5_db", JSON.stringify(window.db));
-          if (window.activeInput) window.pendingRender = true;
-          else window.renderPlanner?.();
-        }
-      }, err => {
-        console.error("Firebase: error de lectura:", err);
-        window.setPlannerSyncStatus?.("🔴 Error Firebase", "error");
-      });
-    } catch (err) {
-      console.error("Firebase no disponible. El planificador seguirá funcionando localmente:", err);
+      );
     }
+
+    window.togglePlannerAuth = async function() {
+      const user = auth.currentUser;
+
+      if (user && isAllowedEmail(user.email)) {
+        await signOut(auth);
+        return;
+      }
+
+      setSyncStatus("🟡 Validando Gmail...", "syncing");
+
+      try {
+        const result = await signInWithPopup(auth, googleProvider);
+        const email = result.user && result.user.email;
+
+        if (!isAllowedEmail(email)) {
+          await signOut(auth);
+          setSyncStatus("🔴 Gmail no autorizado", "error");
+          alert("Solo se permite conectar con " + ALLOWED_EMAIL);
+        }
+      } catch (error) {
+        console.error("Firebase Auth:", error);
+        setSyncStatus("🔴 Error de acceso", "error");
+      }
+    };
+
+    onAuthStateChanged(auth, async (user) => {
+      updateAuthButton(user);
+
+      if (user && isAllowedEmail(user.email)) {
+        connectCloud();
+        return;
+      }
+
+      if (user && !isAllowedEmail(user.email)) {
+        disconnectCloud();
+        setSyncStatus("🔴 Gmail no autorizado", "error");
+        await signOut(auth);
+        return;
+      }
+
+      disconnectCloud();
+      setSyncStatus("🔒 Inicia sesión", "");
+    });
   </script>
-  <meta name="theme-color" content="#111111">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <link rel="manifest" href="./manifest.json">
 </head>
 
 <body>
@@ -629,124 +516,13 @@
     </div>
 
     <div class="actions">
-      <button class="btn-outline" onclick="openSettings()" title="Personalizar">⚙️</button>
-      <span id="syncStatus" class="sync-badge">🟡 Conectando...</span>
+      <span id="syncStatus" class="sync-badge">🟡 Validando...</span>
+      <button id="authButton" class="btn-auth" onclick="togglePlannerAuth()">Gmail</button>
       <button class="btn-secondary" onclick="goToday()">Hoy</button>
       <button onclick="exportData()">💾 Backup</button>
       <button class="btn-outline" onclick="importData()">📂 Cargar</button>
     </div>
   </header>
-
-
-  <!-- Panel de personalización -->
-  <div id="settingsOverlay" class="settings-overlay" onclick="closeSettingsIfOutside(event)">
-    <aside class="settings-panel" onclick="event.stopPropagation()">
-      <div class="settings-title">
-        <span>⚙️ Personalizar</span>
-        <button class="btn-outline" onclick="closeSettings()">✕</button>
-      </div>
-
-      <details class="settings-section" open>
-        <summary>🎨 Colores</summary>
-        <div class="settings-body">
-          <label class="setting-row">Fondo general <input type="color" data-setting="appBg"></label>
-          <label class="setting-row">Texto general <input type="color" data-setting="appText"></label>
-          <label class="setting-row">Fondo de los días <input type="color" data-setting="dayBg"></label>
-          <label class="setting-row">Borde de los días <input type="color" data-setting="dayBorder"></label>
-          <label class="setting-row">Fondo del encabezado <input type="color" data-setting="headerBg"></label>
-          <label class="setting-row">Línea de encabezado <input type="color" data-setting="dayHeaderLine"></label>
-          <label class="setting-row">Color de renglones <input type="color" data-setting="lineColor"></label>
-          <label class="setting-row">Texto de tareas <input type="color" data-setting="taskText"></label>
-          <label class="setting-row">Tareas completadas <input type="color" data-setting="completedColor"></label>
-          <label class="setting-row">Borde de "hoy" <input type="color" data-setting="todayBorder"></label>
-          <label class="setting-row">Fondo de "hoy" <input type="color" data-setting="todayBg"></label>
-        </div>
-      </details>
-
-      <details class="settings-section" open>
-        <summary>🔤 Fuentes</summary>
-        <div class="settings-body">
-          <label class="setting-row">
-            Tipo de fuente
-            <select data-setting="fontFamily">
-              <option value='"Comic Sans MS", "Comic Sans", "Comic Neue", cursive'>Comic Sans</option>
-              <option value="Arial, Helvetica, sans-serif">Arial</option>
-              <option value="Verdana, Geneva, sans-serif">Verdana</option>
-              <option value="Tahoma, Geneva, sans-serif">Tahoma</option>
-              <option value='"Trebuchet MS", Arial, sans-serif'>Trebuchet MS</option>
-              <option value='"Times New Roman", Times, serif'>Times New Roman</option>
-              <option value="Georgia, serif">Georgia</option>
-              <option value="monospace">Monospace</option>
-            </select>
-          </label>
-          <label class="setting-row">
-            Tamaño del texto
-            <span>
-              <input type="range" min="0.65" max="1.30" step="0.05" data-setting="baseFontSize">
-              <span class="range-value" id="baseFontSizeValue"></span>
-            </span>
-          </label>
-        </div>
-      </details>
-
-      <details class="settings-section" open>
-        <summary>📏 Renglones y bordes</summary>
-        <div class="settings-body">
-          <label class="setting-row">
-            Espesor de renglón
-            <span>
-              <input type="range" min="1" max="4" step="1" data-setting="lineWidth">
-              <span class="range-value" id="lineWidthValue"></span>
-            </span>
-          </label>
-          <label class="setting-row">
-            Alto de renglón
-            <span>
-              <input type="range" min="22" max="42" step="1" data-setting="taskRowHeight">
-              <span class="range-value" id="taskRowHeightValue"></span>
-            </span>
-          </label>
-          <label class="setting-row">
-            Redondeo de cuadros
-            <span>
-              <input type="range" min="0" max="16" step="1" data-setting="cardRadius">
-              <span class="range-value" id="cardRadiusValue"></span>
-            </span>
-          </label>
-          <label class="setting-row">
-            Estilo de renglón
-            <select data-setting="lineStyle">
-              <option value="dashed">Discontinuo</option>
-              <option value="solid">Continuo</option>
-              <option value="dotted">Punteado</option>
-            </select>
-          </label>
-        </div>
-      </details>
-
-      <details class="settings-section">
-        <summary>☑️ Tareas completadas</summary>
-        <div class="settings-body">
-          <label class="setting-row">
-            <span>Tachar texto al completar</span>
-            <input type="checkbox" data-setting="completedStrike">
-          </label>
-          <label class="setting-row">
-            <span>Texto en negrita al completar</span>
-            <input type="checkbox" data-setting="completedBold">
-          </label>
-        </div>
-      </details>
-
-      <div class="settings-actions">
-        <button onclick="resetSettings()">↩️ Restablecer</button>
-        <button class="btn-secondary" onclick="closeSettings()">✓ Cerrar</button>
-      </div>
-      <div class="settings-hint">
-        Los cambios se aplican inmediatamente. Se guardan localmente y también se sincronizan con Firebase para compartir el mismo diseño entre dispositivos.
-      </div>
-    </aside>
-  </div>
 
   <main id="mainContainer">
     <div class="planner-grid" id="plannerGrid"></div>
@@ -1021,11 +797,6 @@
           <span class="day-date">${dayInfo.dayNumber}</span>
         </div>
 
-        <div class="day-tools">
-          <button type="button" class="btn-outline" title="Copiar todo lo cargado en este día" onclick="copyDayContent('${dayInfo.dateKey}', ${isWeekend})">📋 Copiar</button>
-          <button type="button" class="btn-outline" title="Pegar en este día" onclick="pasteDayContent('${dayInfo.dateKey}', ${isWeekend})">📥 Pegar</button>
-        </div>
-
         <div
           class="task-list"
           id="list_${dayInfo.dateKey}"
@@ -1174,7 +945,6 @@
         JSON.stringify(window.db)
       );
 
-      // Guarda solamente este día.
       if (window.saveDayToCloud) {
         window.saveDayToCloud(key);
       }
@@ -1231,106 +1001,6 @@
 
       renderPlanner();
     }
-
-    // Copiar y pegar contenido completo entre días.
-    // Se usa localStorage como portapapeles interno para que funcione
-    // también cuando el HTML se abre como archivo local o en móvil.
-    const PLANNER_CLIPBOARD_KEY = "planner_internal_clipboard_v5";
-
-    function getPlannerClipboard() {
-      try {
-        const raw = localStorage.getItem(PLANNER_CLIPBOARD_KEY);
-        if (!raw) return null;
-        const data = JSON.parse(raw);
-        if (!data || data.type !== "planificador-dia-v2" || !Array.isArray(data.tasks)) return null;
-        return data;
-      } catch (e) {
-        return null;
-      }
-    }
-
-    function setPlannerClipboard(data) {
-      try {
-        localStorage.setItem(PLANNER_CLIPBOARD_KEY, JSON.stringify(data));
-        window.plannerClipboard = data;
-        return true;
-      } catch (e) {
-        console.error("No se pudo guardar el contenido copiado:", e);
-        return false;
-      }
-    }
-
-    window.plannerClipboard = getPlannerClipboard();
-
-    function copyDayContent(key, isWeekend = false) {
-      const tasks = getDayTasks(key, isWeekend);
-      // Copia únicamente lo que realmente está cargado, manteniendo
-      // el orden de los renglones. Un día con 1, 2 o todos los renglones funciona igual.
-      const loadedTasks = tasks
-        .map((task, index) => ({
-          originalIndex: index,
-          text: String(task?.text || ""),
-          done: !!task?.done
-        }))
-        .filter(task => task.text.trim() !== "");
-
-      if (!loadedTasks.length) {
-        setPlannerSyncStatus?.("⚠️ Este día no tiene contenido para copiar", "error");
-        return false;
-      }
-
-      const payload = {
-        type: "planificador-dia-v2",
-        source: key,
-        tasks: loadedTasks
-      };
-
-      if (!setPlannerClipboard(payload)) {
-        setPlannerSyncStatus?.("⚠️ No se pudo copiar el día", "error");
-        return false;
-      }
-
-      setPlannerSyncStatus?.(
-        `📋 ${loadedTasks.length} renglón${loadedTasks.length === 1 ? "" : "es"} copiado${loadedTasks.length === 1 ? "" : "s"}`,
-        "online"
-      );
-      return true;
-    }
-
-    function pasteDayContent(key, isWeekend = false) {
-      const payload = getPlannerClipboard() || window.plannerClipboard;
-
-      if (!payload || payload.type !== "planificador-dia-v2" || !Array.isArray(payload.tasks) || !payload.tasks.length) {
-        setPlannerSyncStatus?.("⚠️ Primero copiá un día con contenido", "error");
-        return false;
-      }
-
-      const current = getDayTasks(key, isWeekend);
-      const maxRows = current.length;
-      const result = current.map(task => ({ text: String(task?.text || ""), done: !!task?.done }));
-      let targetIndex = 0;
-
-      // Pega desde el primer renglón disponible y continúa hacia abajo.
-      // Si el destino ya tiene contenido, lo reemplaza desde el primer renglón.
-      for (const task of payload.tasks) {
-        if (targetIndex >= maxRows) break;
-        result[targetIndex] = { text: task.text, done: task.done };
-        targetIndex++;
-      }
-
-      window.db[key] = result;
-      localStorage.setItem("weekly_planner_v5_db", JSON.stringify(window.db));
-      if (window.saveDayToCloud) window.saveDayToCloud(key);
-      renderPlanner();
-
-      const pasted = Math.min(payload.tasks.length, maxRows);
-      setPlannerSyncStatus?.(
-        `📥 ${pasted} renglón${pasted === 1 ? "" : "es"} pegado${pasted === 1 ? "" : "s"}`,
-        "online"
-      );
-      return true;
-    }
-
 
     function handleKeyDown(
       e,
@@ -1417,63 +1087,8 @@
       renderPlanner();
     }
 
-
-    window.openSettings = function() {
-      document.getElementById("settingsOverlay").classList.add("open");
-      window.applyPlannerSettings(window.getPlannerSettings());
-    };
-
-    window.closeSettings = function() {
-      document.getElementById("settingsOverlay").classList.remove("open");
-      if (window.savePlannerSettings) window.savePlannerSettings();
-    };
-
-    window.closeSettingsIfOutside = function(event) {
-      if (event.target.id === "settingsOverlay") window.closeSettings();
-    };
-
-    window.resetSettings = function() {
-      if (!confirm("¿Restablecer el diseño original?")) return;
-      window.resetPlannerSettingsLocal();
-      if (window.savePlannerSettings) window.savePlannerSettings();
-    };
-
-    function getSettingValue(el) {
-      if (el.type === "checkbox") return el.checked;
-      if (el.type === "range") return Number(el.value);
-      return el.value;
-    }
-
-    function handleSettingChange(el) {
-      const current = window.getPlannerSettings();
-      current[el.dataset.setting] = getSettingValue(el);
-      window.applyPlannerSettings(current);
-      if (window.savePlannerSettings) window.savePlannerSettings();
-    }
-
-    document.addEventListener("input", event => {
-      const el = event.target;
-      if (!(el instanceof HTMLElement) || !el.matches("[data-setting]")) return;
-      handleSettingChange(el);
-    });
-
-    document.addEventListener("change", event => {
-      const el = event.target;
-      if (!(el instanceof HTMLElement) || !el.matches("[data-setting]")) return;
-      handleSettingChange(el);
-    });
-
-    // Navegación táctil.
     let swipeStartX = 0;
     let swipeStartY = 0;
-    window.setPlannerSyncStatus = function(text, type) {
-      const elem = document.getElementById("syncStatus");
-      if (!elem) return;
-      elem.innerText = text;
-      elem.classList.remove("online", "syncing", "error");
-      if (type) elem.classList.add(type);
-    };
-
     let initialTouchCount = 0;
 
     const mainContainer =
@@ -1604,7 +1219,6 @@
             JSON.stringify(window.db)
           );
 
-          // Sincroniza los días importados.
           Object.keys(imported).forEach(
             key => {
               if (window.saveDayToCloud) {
@@ -1629,15 +1243,12 @@
 
       reader.readAsText(file);
 
-      // Permite volver a seleccionar el mismo archivo.
       event.target.value = "";
     }
 
     initWeekForCurrentDate();
     renderPlanner();
-    window.applyPlannerSettings(window.getPlannerSettings());
   </script>
 
-<script>if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("./service-worker.js").catch(e=>console.warn("PWA SW:",e)));}</script>
 </body>
 </html>
